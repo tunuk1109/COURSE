@@ -57,7 +57,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 class TeacherViewSet(viewsets.ModelViewSet):
     queryset = Teacher.objects.all()
     serializer_class = TeacherSerializer
-    permission_classes = [permissions.IsAuthenticated, CheckTeacher]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, CheckTeacher]
 
 
 class TeacherCreateAPIView(generics.CreateAPIView):
@@ -68,7 +68,7 @@ class TeacherCreateAPIView(generics.CreateAPIView):
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
-    permission_classes = [permissions.IsAuthenticated, CheckStudent]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, CheckStudent]
 
 
 class StudentCreateAPIView(generics.CreateAPIView):
@@ -80,13 +80,13 @@ class CategoryListAPIView(generics.ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategoryListSerializer
     pagination_class = CategoryPagination
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class CategoryDetailAPIView(generics.RetrieveAPIView):
     queryset = Category.objects.all()
     serializer_class = CategoryDetailSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class CategoryCreateAPIView(generics.CreateAPIView):
@@ -102,13 +102,13 @@ class CourseListAPIView(generics.ListAPIView):
     search_fields = ['course_name']
     ordering_fields = ['price']
     pagination_class = CoursePagination
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class CourseDetailAPIView(generics.RetrieveAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseDetailSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class CourseCreateAPIView(generics.CreateAPIView):
@@ -135,7 +135,7 @@ class ExamListAPIView(generics.ListAPIView):
     queryset = Exam.objects.all()
     serializer_class = ExamListSerializer
     pagination_class = ExamPagination
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class ExamCreateAPIView(generics.CreateAPIView):
@@ -157,7 +157,7 @@ class ExamDetailAPIView(generics.RetrieveAPIView):
     queryset = Exam.objects.all()
     serializer_class = ExamDetailSerializer
     pagination_class = ExamPagination
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class CertificateViewSet(viewsets.ModelViewSet):
@@ -167,13 +167,13 @@ class CertificateViewSet(viewsets.ModelViewSet):
 
 class CourseReviewCreateAPIView(generics.CreateAPIView):
     serializer_class = CourseReviewSerializer
-    permission_classes = [permissions.IsAuthenticated, CheckStudent]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, CheckStudent]
 
 
 class TeacherRatingViewSet(viewsets.ModelViewSet):
     queryset = TeacherRating.objects.all()
     serializer_class = TeacherRatingSerializer
-    permission_classes = [permissions.IsAuthenticated, CheckStudent]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, CheckStudent]
 
     def get_queryset(self):
         return TeacherRating.objects.filter(student_user=self.request.user)
