@@ -11,19 +11,25 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        user = UserProfile.objects.create_user(**validated_data)
-        return user
+       try:
+           user = UserProfile.objects.create_user(**validated_data)
+           return user
+       except Exception as e:
+           return f'{e} Oshinbka pri sohranenii dannyh'
 
     def to_representation(self, instance):
-        refresh = RefreshToken.for_user(instance)
-        return {
-            'user': {
-                'username': instance.username,
-                'email': instance.email,
-            },
-            'access': str(refresh.access_token),
-            'refresh': str(refresh),
-        }
+        try:
+            refresh = RefreshToken.for_user(instance)
+            return {
+                'user': {
+                    'username': instance.username,
+                    'email': instance.email,
+                },
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+            }
+        except Exception as e:
+            return f'{e} Oshibka pri sozdanii tokena'
 
 
 class LoginSerializer(serializers.Serializer):
@@ -37,15 +43,18 @@ class LoginSerializer(serializers.Serializer):
         raise serializers.ValidationError("Неверные учетные данные")
 
     def to_representation(self, instance):
-        refresh = RefreshToken.for_user(instance)
-        return {
-            'user': {
-                'username': instance.username,
-                'email': instance.email,
-            },
-            'access': str(refresh.access_token),
-            'refresh': str(refresh),
-        }
+        try:
+            refresh = RefreshToken.for_user(instance)
+            return {
+                'user': {
+                    'username': instance.username,
+                    'email': instance.email,
+                },
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+            }
+        except Exception as e:
+            return f'{e} Oshibka pri sozdanii tokena'
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -146,16 +155,29 @@ class CourseListSerializer(serializers.ModelSerializer):
                   'price', 'get_change_price', 'old_price', 'author', 'avg_rating', 'count_people', 'count_lesson']
 
     def get_avg_rating(self, obj):
-        return obj.get_avg_rating()
+        try:
+            return obj.get_avg_rating()
+        except Exception as e:
+            return f'{e}, Oshibka pri sozdanii funksii get_avg_rating'
 
     def get_count_people(self, obj):
-        return obj.get_count_people()
+        try:
+            return obj.get_count_people()
+        except Exception as e:
+            return f'{e} Osibka funksii get_count_people'
 
     def get_change_price(self, obj):
-        return obj.get_change_price()
+        try:
+            return obj.get_change_price()
+        except Exception as e:
+            return f'{e} Oshibka funksii get_change_price'
 
     def get_count_lesson(self, obj):
-        return obj.get_count_lesson()
+        try:
+            return obj.get_count_lesson()
+        except Exception as e:
+            return f'{e} Osibka funksii get_count_lesson'
+
 
 class CourseDetailSerializer(serializers.ModelSerializer):
     author = UserProfileCourseSerializer(many=True)
@@ -177,10 +199,16 @@ class CourseDetailSerializer(serializers.ModelSerializer):
                   'course_assignment', 'certificate_course', 'course_review']
 
     def get_avg_rating(self, obj):
-        return obj.get_avg_rating()
+        try:
+            return obj.get_avg_rating()
+        except Exception as e:
+            return f'{e} Oshibka funksii get_avg_rating'
 
     def get_count_people(self, obj):
-        return obj.get_count_people()
+        try:
+            return obj.get_count_people()
+        except Exception as e:
+            return f'{e} Oshibka funksii get_count_people'
 
 
 class CategoryDetailSerializer(serializers.ModelSerializer):
@@ -256,7 +284,10 @@ class CartSerializer(serializers.ModelSerializer):
         fields = ['id', 'items', 'student', 'get_total_price']
 
     def get_total_price(self, obj):
-        return obj.get_total_price()
+        try:
+            return obj.get_total_price()
+        except Exception as e:
+            return f'{e} Oshibka funksii get_total_price'
 
 
 class FavoriteItemSerializer(serializers.ModelSerializer):
@@ -279,8 +310,10 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ['id', 'student', 'favorite_items', 'get_favorite_item']
 
     def get_favorite_item(self, obj):
-        return obj.get_favorite_item()
-
+        try:
+            return obj.get_favorite_item()
+        except Exception as e:
+            return f'{e} Oshibka funksii get_favorite_item'
 
 
 

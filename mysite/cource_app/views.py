@@ -1,4 +1,6 @@
 from rest_framework import viewsets, generics, permissions, status
+from urllib3 import request
+
 from .serializers import *
 from .models import *
 from django_filters.rest_framework import DjangoFilterBackend
@@ -14,10 +16,15 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except serializers.ValidationError as e:
+            return Response({'detail': f'{e}, Maalymat tuura emes'}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'detail': f'Oshibka v servere, {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CustomLoginView(TokenObtainPairView):
@@ -27,8 +34,10 @@ class CustomLoginView(TokenObtainPairView):
         serializer = self.get_serializer(data=request.data)
         try:
             serializer.is_valid(raise_exception=True)
-        except Exception:
+        except ValidationError:
             return Response({"detail": "Неверные учетные данные"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'detail': f'Oshibka v servere, {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         user = serializer.validated_data
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -41,8 +50,10 @@ class LogoutView(generics.GenericAPIView):
             token = RefreshToken(refresh_token)
             token.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
-        except Exception:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        except KeyError:
+            return Response({'detail': 'Key tuura emes'},status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'detail': f'Oshibka v servere, {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
@@ -51,7 +62,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return UserProfile.objects.filter(id=self.request.user.id)
+        try:
+            return UserProfile.objects.filter(id=self.request.user.id)
+        except Exception as e:
+            return Response({'detail': f'Server, {e}'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TeacherViewSet(viewsets.ModelViewSet):
@@ -62,7 +76,19 @@ class TeacherViewSet(viewsets.ModelViewSet):
 
 class TeacherCreateAPIView(generics.CreateAPIView):
     serializer_class = TeacherSerializer
-    permission_classes = [permissions.IsAuthenticated, CheckTeacher]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            teacher = serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except serializers.ValidationError as e:
+            return Response({'detail': f'{e}, Maalymat tuura emes berildi'}, status.HTTP_400_BAD_REQUEST)
+        except NameError as e:
+            return Response({'detail': f'{e}, Oshibka v kode'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception:
+            return Response({'detail': 'Server ne rabotaet'}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class StudentViewSet(viewsets.ModelViewSet):
@@ -83,7 +109,7 @@ class CategoryListAPIView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class CategoryDetailAPIView(generics.RetrieveAPIView):
+class CategoryDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategoryDetailSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
